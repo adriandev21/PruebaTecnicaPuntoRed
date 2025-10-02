@@ -39,8 +39,6 @@ Variables de entorno leídas por `application.properties`:
 - LOGGING_LEVEL_ROOT (ej: INFO|DEBUG)
 
 Notas:
-- `security.jwt.secret` es la clave HMAC para firmar los JWT. En prod guárdala en AWS Secrets Manager/SSM y cárgala como variable de entorno.
-- En prod se recomienda `SPRING_JPA_HIBERNATE_DDL_AUTO=validate` y manejar el esquema con Flyway/Liquibase.
 - Para desactivar el modo sandbox, usa `SANDBOX_ENABLED=false`.
 
 ## Ejecutar local
