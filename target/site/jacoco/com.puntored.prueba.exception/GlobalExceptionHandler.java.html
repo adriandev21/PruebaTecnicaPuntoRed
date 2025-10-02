@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GlobalExceptionHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">prueba</a> &gt; <a href="index.source.html" class="el_package">com.puntored.prueba.exception</a> &gt; <span class="el_source">GlobalExceptionHandler.java</span></div><h1>GlobalExceptionHandler.java</h1><pre class="source lang-java linenums">package com.puntored.prueba.exception;
+
+import com.puntored.prueba.model.dto.ApiResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.ConstraintViolationException;
+
+@RestControllerAdvice
+<span class="fc" id="L14">public class GlobalExceptionHandler {</span>
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity&lt;ApiResponse&lt;Object&gt;&gt; handleValidation(MethodArgumentNotValidException ex){
+<span class="nc" id="L18">        return ResponseEntity.status(422).body(new ApiResponse&lt;&gt;(422, &quot;Datos inválidos&quot;, ex.getBindingResult().getAllErrors()));</span>
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity&lt;ApiResponse&lt;Object&gt;&gt; handleConstraint(ConstraintViolationException ex){
+<span class="nc" id="L23">        return ResponseEntity.status(422).body(new ApiResponse&lt;&gt;(422, &quot;Datos inválidos&quot;, ex.getConstraintViolations()));</span>
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity&lt;ApiResponse&lt;Object&gt;&gt; handleNotFound(EntityNotFoundException ex){
+<span class="fc" id="L28">        return ResponseEntity.status(404).body(new ApiResponse&lt;&gt;(404, ex.getMessage(), null));</span>
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity&lt;ApiResponse&lt;Object&gt;&gt; handleBadRequest(IllegalArgumentException ex){
+<span class="fc" id="L33">        return ResponseEntity.status(400).body(new ApiResponse&lt;&gt;(400, ex.getMessage(), null));</span>
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity&lt;ApiResponse&lt;Object&gt;&gt; handleConflict(IllegalStateException ex){
+<span class="fc" id="L38">        return ResponseEntity.status(409).body(new ApiResponse&lt;&gt;(409, ex.getMessage(), null));</span>
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity&lt;ApiResponse&lt;Object&gt;&gt; handleOther(Exception ex){
+<span class="fc" id="L43">        return ResponseEntity.status(500).body(new ApiResponse&lt;&gt;(500, &quot;Error interno&quot;, ex.getMessage()));</span>
+    }
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CallbackService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">prueba</a> &gt; <a href="index.source.html" class="el_package">com.puntored.prueba.service</a> &gt; <span class="el_source">CallbackService.java</span></div><h1>CallbackService.java</h1><pre class="source lang-java linenums">package com.puntored.prueba.service;
+
+import com.puntored.prueba.model.Payment;
+import com.puntored.prueba.repository.PaymentRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
+
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.HashMap;
+
+@Service
+public class CallbackService {
+<span class="fc" id="L18">    private static final Logger log = LoggerFactory.getLogger(CallbackService.class);</span>
+
+    private final PaymentRepository paymentRepository;
+    private final RestClient restClient;
+
+    // Constructor usado en producción (crea RestClient por defecto)
+<span class="fc" id="L24">    public CallbackService(PaymentRepository paymentRepository) {</span>
+<span class="fc" id="L25">        this.paymentRepository = paymentRepository;</span>
+<span class="fc" id="L26">        this.restClient = RestClient.create();</span>
+<span class="fc" id="L27">    }</span>
+
+    // Constructor adicional para tests (inyectar RestClient mock)
+<span class="fc" id="L30">    CallbackService(PaymentRepository paymentRepository, RestClient restClient) {</span>
+<span class="fc" id="L31">        this.paymentRepository = paymentRepository;</span>
+<span class="pc bpc" id="L32" title="1 of 2 branches missed.">        this.restClient = restClient != null ? restClient : RestClient.create();</span>
+<span class="fc" id="L33">    }</span>
+
+    public void scheduleNext(Payment p){
+<span class="fc" id="L36">        int attempts = p.getCallbackAttempts();</span>
+<span class="fc" id="L37">        LocalDateTime now = LocalDateTime.now();</span>
+        LocalDateTime next;
+<span class="fc bfc" id="L39" title="All 2 branches covered.">        if (attempts == 0) next = now.plusMinutes(1);</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        else if (attempts == 1) next = now.plusMinutes(2);</span>
+<span class="fc bfc" id="L41" title="All 2 branches covered.">        else if (attempts == 2) next = now.plusMinutes(3);</span>
+<span class="fc" id="L42">        else next = now.plusMinutes(10);</span>
+<span class="fc" id="L43">        p.setNextCallbackAt(next);</span>
+<span class="fc" id="L44">        paymentRepository.save(p);</span>
+<span class="fc" id="L45">    }</span>
+
+    // Hacer público para facilitar el stub desde tests fuera del paquete
+    public Map&lt;String, Object&gt; sendCallback(String url, Map&lt;String, Object&gt; body){
+<span class="nc" id="L49">        return restClient.post().uri(url)</span>
+<span class="nc" id="L50">                .contentType(MediaType.APPLICATION_JSON)</span>
+<span class="nc" id="L51">                .accept(MediaType.APPLICATION_JSON)</span>
+<span class="nc" id="L52">                .body(body)</span>
+<span class="nc" id="L53">                .retrieve()</span>
+<span class="nc" id="L54">                .body(Map.class);</span>
+    }
+
+    public void triggerCallback(Payment p){
+        try {
+<span class="fc" id="L59">            Map&lt;String, Object&gt; body = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L60">            body.put(&quot;paymentId&quot;, p.getPaymentId());</span>
+<span class="fc" id="L61">            body.put(&quot;reference&quot;, p.getReference());</span>
+<span class="fc" id="L62">            body.put(&quot;status&quot;, &quot;02&quot;);</span>
+<span class="fc" id="L63">            body.put(&quot;acknowledgeExpected&quot;, true);</span>
+<span class="fc" id="L64">            var resp = sendCallback(p.getCallbackURL(), body);</span>
+<span class="pc bpc" id="L65" title="2 of 6 branches missed.">            if (resp != null &amp;&amp; &quot;ACK&quot;.equals(String.valueOf(resp.get(&quot;status&quot;))) &amp;&amp; resp.get(&quot;acknowledgeId&quot;) != null) {</span>
+<span class="fc" id="L66">                p.setAcknowledged(true);</span>
+<span class="fc" id="L67">                p.setLastCallbackResponse(&quot;ACK:&quot; + resp.get(&quot;acknowledgeId&quot;));</span>
+<span class="fc" id="L68">                p.setNextCallbackAt(null);</span>
+            } else {
+<span class="fc" id="L70">                p.setLastCallbackResponse(&quot;NO_ACK&quot;);</span>
+            }
+<span class="fc" id="L72">        } catch (Exception e) {</span>
+<span class="fc" id="L73">            p.setLastCallbackResponse(&quot;ERR:&quot; + e.getMessage());</span>
+        } finally {
+<span class="fc" id="L75">            p.setCallbackAttempts(p.getCallbackAttempts() + 1);</span>
+<span class="pc bpc" id="L76" title="1 of 4 branches missed.">            if (!p.isAcknowledged() &amp;&amp; p.getCallbackAttempts() &lt; 10) {</span>
+<span class="fc" id="L77">                scheduleNext(p);</span>
+            }
+<span class="fc" id="L79">            paymentRepository.save(p);</span>
+        }
+<span class="fc" id="L81">    }</span>
+
+    // Procesa callbacks pendientes cada minuto
+    @Scheduled(fixedDelay = 60000)
+    public void processPendingCallbacks(){
+<span class="fc" id="L86">        LocalDateTime now = LocalDateTime.now();</span>
+<span class="fc" id="L87">        paymentRepository.findAll().stream()</span>
+<span class="fc" id="L88">                .filter(p -&gt; p.getStatus().name().equals(&quot;PAID&quot;))</span>
+<span class="fc bfc" id="L89" title="All 2 branches covered.">                .filter(p -&gt; !p.isAcknowledged())</span>
+<span class="fc bfc" id="L90" title="All 4 branches covered.">                .filter(p -&gt; p.getNextCallbackAt() == null || !p.getNextCallbackAt().isAfter(now))</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">                .filter(p -&gt; p.getCallbackAttempts() &lt; 10)</span>
+<span class="fc" id="L92">                .forEach(this::triggerCallback);</span>
+<span class="fc" id="L93">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

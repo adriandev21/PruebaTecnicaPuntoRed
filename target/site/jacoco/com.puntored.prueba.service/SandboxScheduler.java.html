@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SandboxScheduler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">prueba</a> &gt; <a href="index.source.html" class="el_package">com.puntored.prueba.service</a> &gt; <span class="el_source">SandboxScheduler.java</span></div><h1>SandboxScheduler.java</h1><pre class="source lang-java linenums">package com.puntored.prueba.service;
+
+import com.puntored.prueba.model.Payment;
+import com.puntored.prueba.model.PaymentStatus;
+import com.puntored.prueba.repository.PaymentRepository;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
+
+@Component
+@RequiredArgsConstructor
+public class SandboxScheduler {
+<span class="fc" id="L18">    private static final Logger log = LoggerFactory.getLogger(SandboxScheduler.class);</span>
+
+    private final PaymentRepository paymentRepository;
+    private final PaymentService paymentService;
+    private final CallbackService callbackService;
+
+    @Value(&quot;${sandbox.enabled:true}&quot;)
+    private boolean sandboxEnabled;
+
+    // Cada 30 minutos, marca como pagados los pagos en estado CREATED que no han vencido
+    @Scheduled(fixedDelay = 1800000)
+    public void simulatePaid(){
+<span class="fc bfc" id="L30" title="All 2 branches covered.">        if (!sandboxEnabled) return;</span>
+<span class="fc" id="L31">        int count = 0;</span>
+<span class="fc bfc" id="L32" title="All 2 branches covered.">        for (Payment p : paymentRepository.findAll()) {</span>
+<span class="fc bfc" id="L33" title="All 4 branches covered.">            if (p.getStatus() == PaymentStatus.CREATED &amp;&amp; p.getDueDate().isAfter(LocalDateTime.now())) {</span>
+<span class="fc" id="L34">                paymentService.markAsPaid(p);</span>
+<span class="fc" id="L35">                callbackService.scheduleNext(p);</span>
+<span class="fc" id="L36">                count++;</span>
+            }
+<span class="fc" id="L38">        }</span>
+<span class="pc bpc" id="L39" title="1 of 2 branches missed.">        if (count &gt; 0) log.info(&quot;Sandbox: pagos marcados como PAID: {}&quot;, count);</span>
+<span class="fc" id="L40">    }</span>
+
+    // Revisa expiración cada 5 minutos
+    @Scheduled(fixedDelay = 300000)
+    public void expire(){
+<span class="fc" id="L45">        paymentService.expireOverdue();</span>
+<span class="fc" id="L46">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
