@@ -1,0 +1,266 @@
+{
+	"info": {
+		"_postman_id": "4af2375b-e910-4f0e-9da0-52e0609fb8f6",
+		"name": "PuntoRed",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18660230"
+	},
+	"item": [
+		{
+			"name": "Autenticar",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let jsonData = pm.response.json();",
+							"pm.environment.set(\"TOKEN\", jsonData.data.token);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"username\":\"admin\",\"password\":\"admin123\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/v1/authenticate",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"authenticate"
+					]
+				},
+				"description": "Generated from cURL: curl -s -X POST http://localhost:8080/v1/authenticate \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"username\":\"admin\",\"password\":\"admin123\"}'\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Crear pago",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer $TOKEN"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"externalId\": \"ext-123\",\n    \"amount\": 150.75,\n    \"description\": \"Pago de prueba\",\n    \"dueDate\": \"2030-01-01T12:00:00\",\n    \"callbackURL\": \"http://localhost:9000/callback\"\n  }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/v1/payment",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"payment"
+					]
+				},
+				"description": "Generated from cURL: curl -s -X POST http://localhost:8080/v1/payment \\\n  -H \"Authorization: Bearer $TOKEN\" \\\n  -H 'Content-Type: application/json' \\\n  -d '{\n    \"externalId\": \"ext-123\",\n    \"amount\": 150.75,\n    \"description\": \"Pago de prueba\",\n    \"dueDate\": \"2030-01-01T12:00:00\",\n    \"callbackURL\": \"http://localhost:9000/callback\"\n  }'\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar pagos",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/v1/payment/<REFERENCE>/<PAYMENT_ID>",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"payment",
+						"<REFERENCE>",
+						"<PAYMENT_ID>"
+					]
+				},
+				"description": "Generated from cURL: curl -s http://localhost:8080/v1/payment/<REFERENCE>/<PAYMENT_ID> \\\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Listado Pagos (Todos)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer <TOKEN>"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/v1/payments/search",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"payments",
+						"search"
+					]
+				},
+				"description": "Generated from cURL: curl -s 'http://localhost:8080/v1/payments/search' \\\n  -H 'Authorization: Bearer <TOKEN>'\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Listado Pagos (Rango de Fechas)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer <TOKEN>"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/v1/payments/search?startDate=2025-09-01&endDate=2025-10-01",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"payments",
+						"search"
+					],
+					"query": [
+						{
+							"key": "startDate",
+							"value": "2025-09-01"
+						},
+						{
+							"key": "endDate",
+							"value": "2025-10-01"
+						}
+					]
+				},
+				"description": "Generated from cURL: curl -s 'http://localhost:8080/v1/payments/search?startDate=2025-09-01&endDate=2025-10-01' \\\n  -H 'Authorization: Bearer <TOKEN>'\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Listado Pagos (Paginado)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer <TOKEN>"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/v1/payments/search?status=01&page=1&size=5",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"payments",
+						"search"
+					],
+					"query": [
+						{
+							"key": "status",
+							"value": "01"
+						},
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "size",
+							"value": "5"
+						}
+					]
+				},
+				"description": "Generated from cURL: curl -s 'http://localhost:8080/v1/payments/search?status=01&page=1&size=5' \\\n  -H 'Authorization: Bearer <TOKEN>'\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Cancelar pago",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer <TOKEN>"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"reference\": \"<REFERENCE>\",\n    \"status\": \"03\",\n    \"updateDescription\": \"Cancelado por el cliente\"\n  }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/v1/payment/cancel",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"payment",
+						"cancel"
+					]
+				},
+				"description": "Generated from cURL: curl -s -X PUT http://localhost:8080/v1/payment/cancel \\\n  -H 'Authorization: Bearer <TOKEN>' \\\n  -H 'Content-Type: application/json' \\\n  -d '{\n    \"reference\": \"<REFERENCE>\",\n    \"status\": \"03\",\n    \"updateDescription\": \"Cancelado por el cliente\"\n  }'\n"
+			},
+			"response": []
+		}
+	]
+}

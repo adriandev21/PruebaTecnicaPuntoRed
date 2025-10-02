@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>IpRestrictionService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">prueba</a> &gt; <a href="index.source.html" class="el_package">com.puntored.prueba.service</a> &gt; <span class="el_source">IpRestrictionService.java</span></div><h1>IpRestrictionService.java</h1><pre class="source lang-java linenums">package com.puntored.prueba.service;
+
+import com.puntored.prueba.repository.AllowedIpRepository;
+import com.puntored.prueba.repository.IpRestrictionConfigRepository;
+import com.puntored.prueba.security.AllowedIp;
+import com.puntored.prueba.security.IpRestrictionConfig;
+import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class IpRestrictionService {
+    private final AllowedIpRepository allowedIpRepository;
+    private final IpRestrictionConfigRepository configRepository;
+
+    @Cacheable(&quot;allowedIps&quot;)
+    public Set&lt;String&gt; getAllowedIps(){
+<span class="fc" id="L24">        return allowedIpRepository.findByEnabledTrue().stream().map(AllowedIp::getIpAddress).collect(Collectors.toSet());</span>
+    }
+
+    public boolean isAllowed(String ip){
+<span class="fc" id="L28">        return getAllowedIps().contains(ip);</span>
+    }
+
+    public boolean isEnabled(){
+<span class="fc" id="L32">        return configRepository.findById(1L).map(IpRestrictionConfig::isEnabled).orElse(false);</span>
+    }
+
+    @Transactional
+    @CacheEvict(value = &quot;allowedIps&quot;, allEntries = true)
+    public AllowedIp addIp(String ip){
+<span class="fc" id="L38">        AllowedIp a = AllowedIp.builder().ipAddress(ip).enabled(true).build();</span>
+<span class="fc" id="L39">        return allowedIpRepository.save(a);</span>
+    }
+
+    @Transactional
+    @CacheEvict(value = &quot;allowedIps&quot;, allEntries = true)
+    public void removeIp(Long id){
+<span class="fc" id="L45">        allowedIpRepository.deleteById(id);</span>
+<span class="fc" id="L46">    }</span>
+
+    @Transactional
+    public void setEnabled(boolean enabled){
+<span class="fc" id="L50">        IpRestrictionConfig cfg = configRepository.findById(1L).orElseGet(() -&gt; {</span>
+<span class="nc" id="L51">            IpRestrictionConfig c = new IpRestrictionConfig();</span>
+<span class="nc" id="L52">            c.setId(1L);</span>
+<span class="nc" id="L53">            c.setEnabled(false);</span>
+<span class="nc" id="L54">            return c;</span>
+        });
+<span class="fc" id="L56">        cfg.setEnabled(enabled);</span>
+<span class="fc" id="L57">        configRepository.save(cfg);</span>
+<span class="fc" id="L58">    }</span>
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
