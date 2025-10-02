@@ -17,6 +17,9 @@ Backend RESTful que implementa la API de Pagos Referenciados V1.3.
 - Maven 3.9+
 - MySQL 8 (o Docker)
 
+## Script de Base de Datos
+El script SQL para crear la base de datos y tablas necesarias se encuentra en la raíz del proyecto: `ScriptBD.sql`.
+
 ## Configuración de properties y perfiles
 El proyecto usa dos archivos de configuración:
 
